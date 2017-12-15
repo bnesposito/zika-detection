@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import time
 
+from sklearn.ensemble import VotingClassifier
+
 import config
 import process
 import models
@@ -46,13 +48,41 @@ def main():
     X = process.keep_non_nan(X, y)
     y = y.dropna()
 
-    logger.info('Features dataset:')
+    logger.info('Features dataset')
     process.basic_descriptives(X)
 
+    logger.info('Split train test')
+    X_train, X_test, y_train, y_test = models.split_data(X, y, proportion=0.4)
+
     logger.info('Estimating models')
-    grid_xgboost = models.xgboost_grid(X, y, n_cv=5)
-    print(grid_xgboost.best_params_)
-    print(grid_xgboost.best_score_)
+    logger.info('XgBoost')
+    grid_xgboost = models.xgboost_grid(X_train, y_train, n_cv=5)
+    logger.info(grid_xgboost.best_params_)
+    logger.info('Train score: {0}'.format(grid_xgboost.best_score_))
+    logger.info('Test score: {0}'.format(grid_xgboost.score(X_test, y_test)))
+
+    logger.info('Logit')
+    grid_logit = models.logit_grid(X_train, y_train, n_cv=5)
+    y_pred = grid_xgboost.predict(X_test)
+    logger.info(grid_logit.best_params_)
+    logger.info('Train score: {0}'.format(grid_logit.best_score_))
+    logger.info('Test score: {0}'.format(grid_logit.score(X_test, y_test)))
+
+    logger.info('AdaBoost')
+    grid_adaboost = models.adaboost_grid(X_train, y_train, n_cv=5)
+    logger.info(grid_adaboost.best_params_)
+    logger.info('Train score: {0}'.format(grid_adaboost.best_score_))
+    logger.info('Test score: {0}'.format(grid_adaboost.score(X_test, y_test)))
+
+    logger.info('Soft Voting')
+    eclf = VotingClassifier(estimators=[('xg', grid_xgboost), ('logit', grid_logit),
+                                        ('ada', grid_adaboost)], voting='soft')
+    eclf.fit(X_train, y_train)
+    y_pred = eclf.predict(X_test)
+    logger.info('Train score: {0}'.format(eclf.score(X_train, y_train)))
+    logger.info('Test score: {0}'.format(eclf.score(X_test, y_test)))
+
+    config.time_taken_display(t0)
     hi
 
 

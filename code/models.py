@@ -7,9 +7,14 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.model_selection import cross_val_score, StratifiedKFold, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier, GradientBoostingClassifier
 from sklearn.metrics import classification_report, make_scorer, accuracy_score
+from sklearn.model_selection import train_test_split
 
 logger = config.config_logger(__name__,10)
 np.random.seed(42)
+
+
+def split_data(x, y, proportion=0.3):
+    return train_test_split(x, y, test_size=proportion)
 
 
 def report_model_output(model_output, label):
@@ -65,8 +70,13 @@ def knn_cv(x, y, n_cv=10, n_neighbors=5):
 
 
 def logit_grid(x, y, n_cv=10):
-    space_C = np.logspace(-3, 2, num=20)
-    print(space_C)
+    space_C = np.logspace(-3, 2, num=100)
+    space_pen = ['l1', 'l2']
+    param_grid = {'C': space_C, 'penalty': space_pen}
+    logit = LogisticRegression()
+    grid_logit = GridSearchCV(logit, param_grid, cv=n_cv, n_jobs=7)
+    grid_logit.fit(x, y)
+    return grid_logit
 
 
 def xgboost_grid(x, y, n_cv=10):
@@ -77,6 +87,15 @@ def xgboost_grid(x, y, n_cv=10):
     param_grid = {'n_estimators': space_est, 'max_depth': space_depth,
                   'criterion': space_criterion, 'loss': space_loss}
     xgBoost = GradientBoostingClassifier()
-    grid_xgboost = GridSearchCV(xgBoost, param_grid, cv=n_cv, n_jobs=4)
+    grid_xgboost = GridSearchCV(xgBoost, param_grid, cv=n_cv, n_jobs=7)
     grid_xgboost.fit(x, y)
     return grid_xgboost
+
+def adaboost_grid(x, y, n_cv=10):
+    space_est = range(1, 50)
+    param_grid = {'n_estimators': space_est}
+    AdaBoost = AdaBoostClassifier()
+    grid_adaboost = GridSearchCV(AdaBoost, param_grid, cv=n_cv, n_jobs=7)
+    grid_adaboost.fit(x, y)
+    return grid_adaboost
+

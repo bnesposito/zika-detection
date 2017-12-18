@@ -78,7 +78,7 @@ def main():
                                         ('ada', grid_adaboost)], voting='soft')
     eclf.fit(X_train, y_train)
     y_pred = eclf.predict_proba(X_test)
-    print(y_pred)
+    print(y_pred[:5,:])
     logger.info('Train score: {0}'.format(eclf.score(X_train, y_train)))
     logger.info('Test score: {0}'.format(eclf.score(X_test, y_test)))
 

@@ -70,7 +70,7 @@ def knn_cv(x, y, n_cv=10, n_neighbors=5):
 
 
 def logit_grid(x, y, n_cv=10):
-    space_C = np.logspace(-3, 2, num=100)
+    space_C = np.logspace(-1, 2, num=100)
     space_pen = ['l1', 'l2']
     param_grid = {'C': space_C, 'penalty': space_pen}
     logit = LogisticRegression()
@@ -79,17 +79,18 @@ def logit_grid(x, y, n_cv=10):
     return grid_logit
 
 
-def xgboost_grid(x, y, n_cv=10):
+def gbm_grid(x, y, n_cv=10):
     space_est = range(1, 50)
     space_depth = range(1, 5)
     space_loss = ['deviance', 'exponential']
     space_criterion = ['friedman_mse', 'mse']
     param_grid = {'n_estimators': space_est, 'max_depth': space_depth,
                   'criterion': space_criterion, 'loss': space_loss}
-    xgBoost = GradientBoostingClassifier()
-    grid_xgboost = GridSearchCV(xgBoost, param_grid, cv=n_cv, n_jobs=7)
-    grid_xgboost.fit(x, y)
-    return grid_xgboost
+    gbm = GradientBoostingClassifier()
+    grid_gbm = GridSearchCV(gbm, param_grid, cv=n_cv, n_jobs=7)
+    grid_gbm.fit(x, y)
+    return grid_gbm
+
 
 def adaboost_grid(x, y, n_cv=10):
     space_est = range(1, 50)

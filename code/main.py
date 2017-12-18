@@ -55,15 +55,14 @@ def main():
     X_train, X_test, y_train, y_test = models.split_data(X, y, proportion=0.4)
 
     logger.info('Estimating models')
-    logger.info('XgBoost')
-    grid_xgboost = models.xgboost_grid(X_train, y_train, n_cv=5)
-    logger.info(grid_xgboost.best_params_)
-    logger.info('Train score: {0}'.format(grid_xgboost.best_score_))
-    logger.info('Test score: {0}'.format(grid_xgboost.score(X_test, y_test)))
+    logger.info('GBM')
+    grid_gbm = models.gbm_grid(X_train, y_train, n_cv=5)
+    logger.info(grid_gbm.best_params_)
+    logger.info('Train score: {0}'.format(grid_gbm.best_score_))
+    logger.info('Test score: {0}'.format(grid_gbm.score(X_test, y_test)))
 
     logger.info('Logit')
     grid_logit = models.logit_grid(X_train, y_train, n_cv=5)
-    y_pred = grid_xgboost.predict(X_test)
     logger.info(grid_logit.best_params_)
     logger.info('Train score: {0}'.format(grid_logit.best_score_))
     logger.info('Test score: {0}'.format(grid_logit.score(X_test, y_test)))
@@ -75,53 +74,15 @@ def main():
     logger.info('Test score: {0}'.format(grid_adaboost.score(X_test, y_test)))
 
     logger.info('Soft Voting')
-    eclf = VotingClassifier(estimators=[('xg', grid_xgboost), ('logit', grid_logit),
+    eclf = VotingClassifier(estimators=[('gbm', grid_gbm), ('logit', grid_logit),
                                         ('ada', grid_adaboost)], voting='soft')
     eclf.fit(X_train, y_train)
-    y_pred = eclf.predict(X_test)
+    y_pred = eclf.predict_proba(X_test)
+    print(y_pred)
     logger.info('Train score: {0}'.format(eclf.score(X_train, y_train)))
     logger.info('Test score: {0}'.format(eclf.score(X_test, y_test)))
 
     config.time_taken_display(t0)
-    hi
-
-
-
-    lam_list = [0.001, 0.01, 0.05, 0.1, 0.2, 1, 10, 100]
-    neig_list = [1, 2, 3, 4, 5, 10, 15, 20, 30]
-    cv_logit = list()
-    cv_logit_lasso = list()
-    cv_knn = list()
-    n_cv = 4
-
-    for lam in lam_list:
-        temp_logit = models.logistic_cv(X, y, n_cv=n_cv, lam=lam)
-        cv_logit.append(temp_logit)
-        temp_logit_lasso = models.logistic_lasso_cv(X, y, n_cv=n_cv, lam=lam)
-        cv_logit_lasso.append(temp_logit_lasso)
-    for neig in neig_list:
-        temp_knn = models.knn_cv(X, y, n_cv=n_cv, n_neighbors=neig)
-        cv_knn.append(temp_knn)
-    cv_rf = models.random_forrest_cv(X, y, n_cv=n_cv)
-    cv_bernoulliNB = models.bernoulli_naive_bayes_cv(X, y, n_cv=n_cv)
-    cv_NB = models.naive_bayes_cv(X, y, n_cv=n_cv)
-    cv_NN = models.neural_network_cv(X, y, n_cv=n_cv)
-
-    for i in range(len(lam_list)):
-        models.report_model_output(cv_logit[i], 'Logit_{0}'.format(lam_list[i]))
-        models.report_model_output(cv_logit_lasso[i], 'Logit_lasso_{0}'.format(lam_list[i]))
-    for i in range(len(neig_list)):
-        models.report_model_output(cv_knn[i], 'KNN_{0}'.format(neig_list[i]))
-
-    models.report_model_output(cv_rf, 'Random Forrest')
-    models.report_model_output(cv_bernoulliNB, 'BernoulliNB')
-    models.report_model_output(cv_NB, 'Naive Bayes')
-    models.report_model_output(cv_NN, 'Neural Network')
-
-    #print(cv_logit)
-
-    config.time_taken_display(t0)
-    print(' ')
 
 
 if __name__ == '__main__':

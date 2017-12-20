@@ -80,12 +80,10 @@ def logit_grid(x, y, n_cv=10):
 
 
 def gbm_grid(x, y, n_cv=10):
-    space_est = range(1, 50)
     space_depth = range(1, 5)
     space_loss = ['deviance', 'exponential']
     space_criterion = ['friedman_mse', 'mse']
-    param_grid = {'n_estimators': space_est, 'max_depth': space_depth,
-                  'criterion': space_criterion, 'loss': space_loss}
+    param_grid = {'max_depth': space_depth, 'criterion': space_criterion, 'loss': space_loss}
     gbm = GradientBoostingClassifier()
     grid_gbm = GridSearchCV(gbm, param_grid, cv=n_cv, n_jobs=7)
     grid_gbm.fit(x, y)
@@ -93,8 +91,7 @@ def gbm_grid(x, y, n_cv=10):
 
 
 def adaboost_grid(x, y, n_cv=10):
-    space_est = range(1, 50)
-    param_grid = {'n_estimators': space_est}
+    param_grid = {}
     AdaBoost = AdaBoostClassifier()
     grid_adaboost = GridSearchCV(AdaBoost, param_grid, cv=n_cv, n_jobs=7)
     grid_adaboost.fit(x, y)
